@@ -15,16 +15,17 @@ from homeassistant.components.light import (
     ColorMode,
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
-    ATTR_COLOR_TEMP,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_HS_COLOR,
     ATTR_RGB_COLOR,
-    SUPPORT_BRIGHTNESS,
-    SUPPORT_COLOR,
-    SUPPORT_COLOR_TEMP,
     LightEntity,
     PLATFORM_SCHEMA,
 )
+
+# ATTR_COLOR_TEMP (mireds) is deprecated in HA 2024.x, but we keep backward
+# compatibility for callers that haven't migrated to ATTR_COLOR_TEMP_KELVIN yet.
+# This constant will be removed in HA 2026.1.
+ATTR_COLOR_TEMP = "color_temp"
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
@@ -200,7 +201,6 @@ class GoveLightEntity(LightEntity):
     _attr_min_color_temp_kelvin = 2000
     _attr_max_color_temp_kelvin = 9000
     _attr_supported_color_modes = {
-        ColorMode.BRIGHTNESS,
         ColorMode.COLOR_TEMP,
         ColorMode.RGB,
     }
@@ -267,14 +267,10 @@ class GoveLightEntity(LightEntity):
         if state:
             self._attr_color_temp_kelvin = state.color_temperature
             if state.color_temperature and state.color_temperature > 0:
-                self._attr_color_temp = color.color_temperature_kelvin_to_mired(
-                    state.color_temperature
-                )
                 self._attr_color_mode = ColorMode.COLOR_TEMP
                 self._attr_rgb_color = None
             elif state.color is not None:
                 self._attr_color_temp_kelvin = None
-                self._attr_color_temp = None
                 self._attr_color_mode = ColorMode.RGB
                 self._attr_rgb_color = state.color.as_tuple()
 
