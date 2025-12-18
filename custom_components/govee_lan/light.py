@@ -147,8 +147,20 @@ async def async_setup_entry(
 
     if api_key:
         controller.set_http_api_key(api_key)
+
+        def _query_http_devices_sync():
+            """Run async query_http_devices in a new event loop to avoid blocking main loop."""
+            import asyncio
+            loop = asyncio.new_event_loop()
+            try:
+                return loop.run_until_complete(controller.query_http_devices())
+            finally:
+                loop.close()
+
         try:
-            await controller.query_http_devices()
+            # Run in executor to avoid blocking the event loop with SSL cert loading
+            # The govee library's http_get_devices creates SSL context synchronously
+            await hass.async_add_executor_job(_query_http_devices_sync)
         except RuntimeError as exc:
             # The consequence of this is that the user-friendly names
             # won't be populated immediately for devices that we
