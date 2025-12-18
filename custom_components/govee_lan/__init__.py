@@ -15,7 +15,7 @@ from govee_led_wez import GoveeController, GoveeDevice
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = vol.Schema({vol.Optional(DOMAIN): {}}, extra=vol.ALLOW_EXTRA)
-PLATFORMS: list[Platform] = [Platform.LIGHT, Platform.SELECT]
+PLATFORMS: list[Platform] = [Platform.LIGHT]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
