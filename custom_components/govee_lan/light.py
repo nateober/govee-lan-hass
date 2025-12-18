@@ -210,6 +210,8 @@ class GoveLightEntity(LightEntity):
         self._govee_controller = controller
         self._govee_device = device
         self._last_poll = None
+        # Set default color mode to avoid "does not report a color mode" warning
+        self._attr_color_mode = ColorMode.RGB
 
         ident = device.device_id.replace(":", "")
         self._attr_unique_id = f"{device.model}_{ident}"
