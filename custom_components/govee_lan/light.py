@@ -129,9 +129,15 @@ async def async_setup_entry(
     registry = DeviceRegistry(add_entities)
     controller = GoveeController()
     controller.set_device_control_timeout(3)  # TODO: configurable
-    controller.set_device_change_callback(
-        lambda device: registry.handle_device_update(hass, entry, controller, device)
-    )
+
+    # The callback may be called from a background thread, so we need to
+    # schedule the update on the main event loop to be thread-safe
+    def _threadsafe_device_callback(device):
+        hass.loop.call_soon_threadsafe(
+            lambda: registry.handle_device_update(hass, entry, controller, device)
+        )
+
+    controller.set_device_change_callback(_threadsafe_device_callback)
     hass.data[DOMAIN]["controller"] = controller
     hass.data[DOMAIN]["registry"] = registry
 
@@ -147,20 +153,12 @@ async def async_setup_entry(
 
     if api_key:
         controller.set_http_api_key(api_key)
-
-        def _query_http_devices_sync():
-            """Run async query_http_devices in a new event loop to avoid blocking main loop."""
-            import asyncio
-            loop = asyncio.new_event_loop()
-            try:
-                return loop.run_until_complete(controller.query_http_devices())
-            finally:
-                loop.close()
-
         try:
-            # Run in executor to avoid blocking the event loop with SSL cert loading
-            # The govee library's http_get_devices creates SSL context synchronously
-            await hass.async_add_executor_job(_query_http_devices_sync)
+            # Note: This may trigger a "blocking call" warning for SSL cert loading.
+            # The blocking is minimal (cert loading is cached after first call) and
+            # the alternative (running in executor) causes thread-safety issues with
+            # the device callback system.
+            await controller.query_http_devices()
         except RuntimeError as exc:
             # The consequence of this is that the user-friendly names
             # won't be populated immediately for devices that we
