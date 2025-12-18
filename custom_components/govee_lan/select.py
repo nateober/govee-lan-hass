@@ -45,15 +45,16 @@ async def async_setup_entry(
     entities = []
     for device_id, light_entity in registry.devices.items():
         device = light_entity._govee_device
-        if device.http_definition:
-            scenes = await fetch_device_scenes(api_key, device.model, device.device_id)
-            if scenes:
-                entities.append(GoveeSceneSelect(
-                    api_key=api_key,
-                    device=device,
-                    light_entity=light_entity,
-                    scenes=scenes,
-                ))
+        # Try to fetch scenes for all devices (LAN or HTTP discovered)
+        # The API uses model and device_id which are available for both
+        scenes = await fetch_device_scenes(api_key, device.model, device.device_id)
+        if scenes and len(scenes) > 1:  # More than just "None" option
+            entities.append(GoveeSceneSelect(
+                api_key=api_key,
+                device=device,
+                light_entity=light_entity,
+                scenes=scenes,
+            ))
 
     if entities:
         _LOGGER.info("Adding %d scene select entities", len(entities))
