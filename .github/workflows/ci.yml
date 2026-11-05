@@ -32,7 +32,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.14"
-      - run: uv venv && uv pip install -r requirements_test.txt
+      - run: uv venv --clear && uv pip install -r requirements_test.txt
       - run: uv run --no-project ruff check .
       # Unpinned on purpose: always tests against the newest HA that the
       # test harness has published.

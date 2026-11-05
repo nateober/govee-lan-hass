@@ -9,7 +9,7 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/nateober/govee-lan-hass/issues",
   "loggers": ["govee_local_api"],
-  "requirements": ["govee-local-api==3.3.1"],
+  "requirements": ["govee-local-api>=3.3.1"],
   "single_config_entry": true,
-  "version": "2.0.0"
+  "version": "2.0.1"
 }

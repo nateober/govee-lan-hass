@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- Require `govee-local-api>=3.3.1` so it follows the version Home Assistant ships.
+- Fix the CI environment setup.
+
 ## 2.0.0
 
 Rebuilt from wez/govee-lan-hass 1.0.0, which is unmaintained. Domain, unique IDs,

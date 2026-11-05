@@ -35,5 +35,5 @@ shift. Remove this if the library takes the range as an argument.
 
 `.github/workflows/ci.yml` runs hassfest, HACS validation and the tests weekly against
 the newest Home Assistant test harness, with deprecations from this package as errors.
-Dependabot bumps `govee-local-api` through `requirements_test.txt`; the pin in
-`manifest.json` has to be changed to match.
+`govee-local-api` is a minimum version, not a pin, because Home Assistant core depends
+on it too (hassfest rejects a pin) and this needs to follow whatever core ships.
