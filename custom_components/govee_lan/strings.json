@@ -1,31 +1,44 @@
 {
-  "title": "Govee Lights",
   "config": {
-    "abort": {
-    },
-    "error": {
-    },
     "step": {
       "user": {
-        "data": {
-          "api_key": "API Key"
-        },
-        "title": "API Key (optional)",
-        "description": "Get your API Key from the Govee Home App."
+        "description": "A Govee API key is optional. Without one, only lights with LAN Control enabled in the Govee app work, and they get no effects.",
+        "data": { "api_key": "Govee API key" }
+      },
+      "reauth_confirm": {
+        "title": "Govee API key rejected",
+        "description": "Govee no longer accepts the saved key. Enter a new one.",
+        "data": { "api_key": "Govee API key" }
       }
+    },
+    "error": {
+      "invalid_auth": "Govee rejected that API key.",
+      "cannot_connect": "Could not reach the Govee API."
+    },
+    "abort": {
+      "reauth_successful": "API key updated.",
+      "single_instance_allowed": "Govee LAN Control is already configured."
     }
   },
   "options": {
-    "error": {
-    },
     "step": {
-      "user": {
-        "data": {
-          "api_key": "API Key"
-        },
-        "title": "Options",
-        "description": "Optionally enter your API Key. You can request it via the Govee mobile application by going to Account | Settings | Request API Key"
+      "init": {
+        "description": "Leave the key empty to run on LAN only.",
+        "data": { "api_key": "Govee API key" }
       }
+    },
+    "error": {
+      "invalid_auth": "Govee rejected that API key.",
+      "cannot_connect": "Could not reach the Govee API."
     }
+  },
+  "exceptions": {
+    "unreachable": { "message": "{name} is offline: it is not answering on the LAN and Govee reports it unreachable." },
+    "rate_limited": { "message": "Govee's daily API limit is used up, so {name} cannot be controlled from the cloud right now." },
+    "command_failed": { "message": "Govee could not change {name}: {error}" },
+    "no_listening_addresses": { "message": "No enabled IPv4 network adapter to listen on." },
+    "port_in_use": { "message": "UDP port {port} is in use. Another Govee LAN integration is probably running." },
+    "bind_failed": { "message": "Could not open the Govee LAN socket: {error}" },
+    "no_live_endpoints": { "message": "The Govee LAN socket was lost, reloading." }
   }
 }
