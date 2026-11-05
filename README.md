@@ -24,6 +24,12 @@ effects.
 Enable **LAN Control** per device in the Govee app. If the option is missing, update the
 firmware, kill the app and reopen it with your phone's Wi-Fi off.
 
+Switching from `wez/govee-lan-hass` in the Marketplace: it won't uninstall a repository
+that is still set up, or install over a domain another repository owns. Note your API key,
+delete the integration under Settings > Devices & services, uninstall wez's, download this
+one, restart and add the integration again. Home Assistant restores entity IDs, names and
+areas for 30 days after deletion.
+
 ## Network requirements
 
 Home Assistant must share a network with the lights and multicast must work over Wi-Fi.
