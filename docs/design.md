@@ -26,10 +26,13 @@ Reports exist of Govee's `online` being wrong for some lights
 
 ## Color temperature
 
-`device.set_temperature()` clamps to the library's per-model table, which disagrees
-with the cloud for at least H6076 (2700 K against 2200 K). Kelvin writes go through
-`device.transport` with the range the cloud declares, so warm-white automations don't
-shift. Remove this if the library takes the range as an argument.
+The range shown in the UI is what the cloud declares. It is not enforced on the LAN: an
+H6076 declares 2200 K but accepts and reports 2000 K. Clamping there made the light report
+something other than what an automation asked for, and an office ramp that treats a 150 K
+difference as a manual change put itself on hold. LAN writes are limited only to
+2000-9000 K and go through `device.transport`, because `device.set_temperature()` clamps
+to the library's own table (2700 K for H6076). Cloud writes are clamped to the declared
+range, since the cloud rejects anything else.
 
 ## Staying current
 

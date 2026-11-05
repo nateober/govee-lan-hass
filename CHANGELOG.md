@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.2
+
+- Stop clamping LAN color temperature to the declared range. Automations that compare the
+  reported value to their target saw a mismatch and treated it as a manual change.
+
 ## 2.0.1
 
 - Require `govee-local-api>=3.3.1` so it follows the version Home Assistant ships.
@@ -18,7 +23,7 @@ scenes and scripts carry over.
   the blocking SSL load on the event loop.
 - Offline lights are unavailable. They used to show their last known state.
 - Devices the legacy API did not list are now found.
-- Color temperature limits come from each light. They were 2000-9000 K for all.
+- The UI's color temperature range comes from each light. It was 2000-9000 K for all.
 - Failed commands raise an error. They used to be logged at debug and look successful.
 - A brightness or color change now turns on a light that is off.
 - A Govee cloud outage or rate limit no longer affects LAN lights.

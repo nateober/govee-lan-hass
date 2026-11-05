@@ -182,8 +182,8 @@ class GoveeLightEntity(CoordinatorEntity[GoveeCoordinator], LightEntity):
             brightness_pct = max(1, min(100, round(value)))
         kelvin = None
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
-            low, high = self.light.kelvin_range
-            kelvin = max(low, min(high, int(kwargs[ATTR_COLOR_TEMP_KELVIN])))
+            # Limits depend on the route, so the coordinator applies them.
+            kelvin = int(kwargs[ATTR_COLOR_TEMP_KELVIN])
         await self.coordinator.async_turn_on(
             self.light,
             brightness_pct=brightness_pct,

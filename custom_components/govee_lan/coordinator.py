@@ -387,6 +387,9 @@ class GoveeCoordinator(DataUpdateCoordinator[dict[str, GoveeLight]]):
                 new.rgb, new.kelvin = rgb, 0
                 light.effect = None
             elif kelvin is not None:
+                if not light.lan_reachable:
+                    low, high = light.kelvin_range
+                    kelvin = max(low, min(high, kelvin))
                 new.kelvin, new.rgb = kelvin, None
                 light.effect = None
             if scene:
@@ -450,11 +453,12 @@ class GoveeCoordinator(DataUpdateCoordinator[dict[str, GoveeLight]]):
     async def _async_lan_set_kelvin(
         light: GoveeLight, device: GoveeDevice, kelvin: int
     ) -> None:
-        """Send a color temperature using the range Govee declares for this light.
+        """Send a color temperature limited only by the LAN protocol's range.
 
-        device.set_temperature() clamps to the library's own per-model table,
-        which can disagree with the cloud. It holds H6076 at 2700 K where the
-        cloud declares 2200 K, and would visibly change warm-white automations.
+        device.set_temperature() clamps to the library's per-model table, and the
+        cloud's declared range is narrower than some firmware accepts: an H6076
+        declares 2200 K but takes and reports 2000 K over the LAN. Automations can
+        compare the reported value to what they asked for, so the light decides.
         """
         transport = device.transport
         if transport is None or transport.is_closing():
@@ -463,7 +467,9 @@ class GoveeCoordinator(DataUpdateCoordinator[dict[str, GoveeLight]]):
             await device.set_temperature(kelvin)
             return
         message = ColorMessage(
-            rgb=None, temperature=kelvin, temperature_range=light.kelvin_range
+            rgb=None,
+            temperature=kelvin,
+            temperature_range=(DEFAULT_MIN_KELVIN, DEFAULT_MAX_KELVIN),
         )
         transport.sendto(bytes(message), (device.ip, COMMAND_PORT))
 
@@ -485,7 +491,11 @@ class GoveeCoordinator(DataUpdateCoordinator[dict[str, GoveeLight]]):
             value = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2]
             await self._async_cloud_call(light, CAP_COLOR, INSTANCE_RGB, value)
         elif kelvin is not None:
-            await self._async_cloud_call(light, CAP_COLOR, INSTANCE_KELVIN, kelvin)
+            # The cloud rejects values outside the range it declares.
+            low, high = light.kelvin_range
+            await self._async_cloud_call(
+                light, CAP_COLOR, INSTANCE_KELVIN, max(low, min(high, kelvin))
+            )
 
     async def _async_cloud_call(
         self, light: GoveeLight, cap_type: str, instance: str, value: object

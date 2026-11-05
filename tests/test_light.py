@@ -127,10 +127,10 @@ async def test_lan_route_uses_no_cloud_requests(
     cloud.async_control.assert_not_awaited()
 
 
-async def test_lan_kelvin_uses_cloud_range_not_library_table(
+async def test_lan_kelvin_is_not_clamped_to_declared_ranges(
     hass: HomeAssistant, entry, cloud, controller
 ) -> None:
-    """A warm-white request must not be pushed up to the library's 2700 K."""
+    """Automations compare the reported value to their target, so 2000 K stays."""
     cloud.async_get_lights.return_value = [
         _lan_cloud_device(),
     ]
@@ -143,8 +143,9 @@ async def test_lan_kelvin_uses_cloud_range_not_library_table(
 
     await call(hass, "turn_on", entity_id, color_temp_kelvin=2000)
     sent = json.loads(device.transport.sendto.call_args[0][0])
-    assert sent["msg"]["data"]["colorTemInKelvin"] == 2200
+    assert sent["msg"]["data"]["colorTemInKelvin"] == 2000
     device.set_temperature.assert_not_awaited()
+    assert hass.states.get(entity_id).attributes["color_temp_kelvin"] == 2000
 
 
 def _lan_cloud_device():
@@ -353,3 +354,15 @@ async def test_discovery_requests_status_after_library_registers(
     fake.send_update_message.assert_not_called()
     await hass.async_block_till_done()
     fake.send_update_message.assert_called_once()
+
+
+async def test_cloud_kelvin_is_clamped_to_declared_range(
+    hass: HomeAssistant, entry, cloud
+) -> None:
+    """The cloud rejects out-of-range values, so they are limited on that route."""
+    cloud.async_get_lights.return_value = [_lan_cloud_device()]
+    cloud.async_get_state.return_value = online_state(on=True)
+    await setup(hass, entry)
+    await call(hass, "turn_on", "light.lamp", color_temp_kelvin=2000)
+    assert cloud.async_control.await_args.args[2:] == ("colorTemperatureK", 2200)
+    assert hass.states.get("light.lamp").attributes["color_temp_kelvin"] == 2200
